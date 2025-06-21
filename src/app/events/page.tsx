@@ -15,6 +15,16 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,6 +54,10 @@ export default function EventsPage() {
   // States for editing an event
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // States for deleting an event
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
 
   const handleNewEventInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -97,6 +111,18 @@ export default function EventsPage() {
     setEventsList((prev) => prev.map((e) => (e.id === finalEvent.id ? finalEvent : e)));
     setIsEditDialogOpen(false);
     setEditingEvent(null);
+  };
+
+  const handleOpenDeleteDialog = (eventId: string) => {
+    setEventToDelete(eventId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!eventToDelete) return;
+    setEventsList((prev) => prev.filter((e) => e.id !== eventToDelete));
+    setIsDeleteDialogOpen(false);
+    setEventToDelete(null);
   };
 
   return (
@@ -230,8 +256,29 @@ export default function EventsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso irá apagar permanentemente o evento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Apagar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <EventsCalendar events={eventsList} onEditEvent={handleOpenEditDialog} />
+      <EventsCalendar events={eventsList} onEditEvent={handleOpenEditDialog} onDeleteEvent={handleOpenDeleteDialog} />
     </>
   );
 }

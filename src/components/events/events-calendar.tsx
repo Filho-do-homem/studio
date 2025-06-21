@@ -6,15 +6,16 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Pencil } from 'lucide-react';
+import { Calendar as CalendarIcon, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EventsCalendarProps {
   events: Event[];
   onEditEvent: (event: Event) => void;
+  onDeleteEvent: (eventId: string) => void;
 }
 
-export default function EventsCalendar({ events, onEditEvent }: EventsCalendarProps) {
+export default function EventsCalendar({ events, onEditEvent, onDeleteEvent }: EventsCalendarProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   const sortedEvents = [...events].sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -75,15 +76,24 @@ export default function EventsCalendar({ events, onEditEvent }: EventsCalendarPr
                             </p>
                             <p className="mt-1">{event.description}</p>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="ml-4 flex-shrink-0"
-                            onClick={() => onEditEvent(event)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Editar Evento</span>
-                          </Button>
+                          <div className="ml-4 flex flex-shrink-0 items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => onEditEvent(event)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Editar Evento</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => onDeleteEvent(event.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Apagar Evento</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </li>
