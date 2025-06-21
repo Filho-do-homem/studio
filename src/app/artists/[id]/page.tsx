@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Mail, Phone } from 'lucide-react';
 import AiBioGenerator from '@/components/artists/ai-bio-generator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export async function generateStaticParams() {
   return artists.map((artist) => ({
@@ -56,47 +57,55 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Biografia</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{artist.bio}</p>
-            </CardContent>
-          </Card>
         </div>
 
-        <div className="space-y-8 lg:col-span-2">
-           <AiBioGenerator />
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Obras de Arte</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {artist.artworks.map((artwork) => (
-                  <div key={artwork.id} className="group overflow-hidden rounded-lg border">
-                    <div className="overflow-hidden">
-                       <Image
-                        src={artwork.imageUrl}
-                        alt={artwork.title}
-                        width={600}
-                        height={400}
-                        className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint={artwork['data-ai-hint']}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-headline text-lg text-foreground">{artwork.title} ({artwork.year})</h3>
-                      <p className="text-sm text-muted-foreground">{artwork.description}</p>
-                    </div>
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="artworks" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="bio">Biografia</TabsTrigger>
+              <TabsTrigger value="artworks">Obras de Arte</TabsTrigger>
+            </TabsList>
+            <TabsContent value="bio" className="mt-6 space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-headline">Biografia</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{artist.bio}</p>
+                </CardContent>
+              </Card>
+              <AiBioGenerator />
+            </TabsContent>
+            <TabsContent value="artworks" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-headline">Obras de Arte</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    {artist.artworks.map((artwork) => (
+                      <div key={artwork.id} className="group overflow-hidden rounded-lg border">
+                        <div className="overflow-hidden">
+                          <Image
+                            src={artwork.imageUrl}
+                            alt={artwork.title}
+                            width={600}
+                            height={400}
+                            className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            data-ai-hint={artwork['data-ai-hint']}
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-headline text-lg text-foreground">{artwork.title} ({artwork.year})</h3>
+                          <p className="text-sm text-muted-foreground">{artwork.description}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
