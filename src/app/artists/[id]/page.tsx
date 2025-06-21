@@ -1,4 +1,3 @@
-
 'use client';
 
 import { artists } from '@/lib/data';
@@ -25,12 +24,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Artist } from '@/lib/types';
-
-export async function generateStaticParams() {
-  return artists.map((artist) => ({
-    id: artist.id,
-  }));
-}
 
 export default function ArtistProfilePage({ params }: { params: { id: string } }) {
   const initialArtist = artists.find((a) => a.id === params.id);
