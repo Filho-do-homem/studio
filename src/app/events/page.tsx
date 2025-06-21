@@ -27,14 +27,39 @@ const emptyEvent = {
   description: '',
 };
 
+// Helper to format Date to 'YYYY-MM-DDTHH:mm' string for the input
+const formatDateTimeForInput = (date: Date): string => {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+};
+
 export default function EventsPage() {
   const [eventsList, setEventsList] = useState<Event[]>(initialEvents);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // States for adding a new event
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newEvent, setNewEvent] = useState(emptyEvent);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // States for editing an event
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  const handleNewEventInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setNewEvent((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleEditEventInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!editingEvent) return;
+    const { id, value } = e.target;
+    setEditingEvent((prev) => (prev ? { ...prev, [id]: value } : null));
+  };
+
+  const handleEditEventDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editingEvent) return;
+    const { value } = e.target;
+    setEditingEvent((prev) => (prev ? { ...prev, date: new Date(value) } : null));
   };
 
   const handleAddEvent = () => {
@@ -52,7 +77,26 @@ export default function EventsPage() {
 
     setEventsList((prev) => [...prev, newEventData]);
     setNewEvent(emptyEvent);
-    setIsDialogOpen(false);
+    setIsAddDialogOpen(false);
+  };
+
+  const handleOpenEditDialog = (event: Event) => {
+    setEditingEvent(event);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEvent = () => {
+    if (!editingEvent) return;
+
+    // Ensure date is a Date object
+    const finalEvent = {
+      ...editingEvent,
+      date: new Date(editingEvent.date),
+    };
+
+    setEventsList((prev) => prev.map((e) => (e.id === finalEvent.id ? finalEvent : e)));
+    setIsEditDialogOpen(false);
+    setEditingEvent(null);
   };
 
   return (
@@ -61,7 +105,7 @@ export default function EventsPage() {
         title="Eventos Futuros"
         description="Fique por dentro da agenda de eventos e workshops da academia."
       >
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle />
@@ -80,7 +124,13 @@ export default function EventsPage() {
                 <Label htmlFor="title" className="text-right">
                   Título
                 </Label>
-                <Input id="title" value={newEvent.title} onChange={handleInputChange} className="col-span-3" required />
+                <Input
+                  id="title"
+                  value={newEvent.title}
+                  onChange={handleNewEventInputChange}
+                  className="col-span-3"
+                  required
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">
@@ -90,7 +140,7 @@ export default function EventsPage() {
                   id="date"
                   type="datetime-local"
                   value={newEvent.date}
-                  onChange={handleInputChange}
+                  onChange={handleNewEventInputChange}
                   className="col-span-3"
                   required
                 />
@@ -100,7 +150,7 @@ export default function EventsPage() {
                 <Textarea
                   id="description"
                   value={newEvent.description}
-                  onChange={handleInputChange}
+                  onChange={handleNewEventInputChange}
                   rows={4}
                   required
                 />
@@ -119,7 +169,69 @@ export default function EventsPage() {
           </DialogContent>
         </Dialog>
       </PageHeader>
-      <EventsCalendar events={eventsList} />
+
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Evento</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do evento. Clique em salvar para aplicar as mudanças.
+            </DialogDescription>
+          </DialogHeader>
+          {editingEvent && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Título
+                </Label>
+                <Input
+                  id="title"
+                  value={editingEvent.title}
+                  onChange={handleEditEventInputChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="date" className="text-right">
+                  Data e Hora
+                </Label>
+                <Input
+                  id="date"
+                  type="datetime-local"
+                  value={formatDateTimeForInput(editingEvent.date)}
+                  onChange={handleEditEventDateChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={editingEvent.description}
+                  onChange={handleEditEventInputChange}
+                  rows={4}
+                  required
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary" onClick={() => setIsEditDialogOpen(false)}>
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button type="button" onClick={handleUpdateEvent}>
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <EventsCalendar events={eventsList} onEditEvent={handleOpenEditDialog} />
     </>
   );
 }
