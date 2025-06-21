@@ -1,5 +1,7 @@
+
+'use client';
+
 import { artists } from '@/lib/data';
-import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +10,21 @@ import { Mail, Phone, Pencil } from 'lucide-react';
 import AiBioGenerator from '@/components/artists/ai-bio-generator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useState, type ChangeEvent } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import type { Artist } from '@/lib/types';
 
 export async function generateStaticParams() {
   return artists.map((artist) => ({
@@ -16,19 +33,102 @@ export async function generateStaticParams() {
 }
 
 export default function ArtistProfilePage({ params }: { params: { id: string } }) {
-  const artist = artists.find((a) => a.id === params.id);
+  const initialArtist = artists.find((a) => a.id === params.id);
 
-  if (!artist) {
-    notFound();
+  const [artist, setArtist] = useState<Artist | undefined>(initialArtist);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<Artist | undefined>(initialArtist);
+
+  if (!artist || !formData) {
+    return <div className="py-10 text-center">Artista não encontrado.</div>;
   }
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [id]: value } : undefined));
+  };
+
+  const handleDisciplinesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, disciplines: value.split(',').map((d) => d.trim()) } : undefined));
+  };
+
+  const handleSaveChanges = () => {
+    console.log('Saving artist data:', formData);
+    setArtist(formData);
+    setIsDialogOpen(false);
+  };
+
+  const openEditDialog = () => {
+    setFormData(artist);
+    setIsDialogOpen(true);
+  };
 
   return (
     <div className="space-y-8">
       <PageHeader title={artist.name}>
-        <Button variant="outline">
-          <Pencil />
-          Editar Artista
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" onClick={openEditDialog}>
+              <Pencil />
+              Editar Artista
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Editar Perfil</DialogTitle>
+              <DialogDescription>
+                Atualize as informações do artista. Clique em salvar para aplicar as mudanças.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Nome
+                </Label>
+                <Input id="name" value={formData.name} onChange={handleInputChange} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input id="email" type="email" value={formData.email} onChange={handleInputChange} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Telefone
+                </Label>
+                <Input id="phone" value={formData.phone} onChange={handleInputChange} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="disciplines" className="text-right">
+                  Disciplinas
+                </Label>
+                <Input
+                  id="disciplines"
+                  placeholder="Separe por vírgulas"
+                  value={formData.disciplines.join(', ')}
+                  onChange={handleDisciplinesChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="bio">Biografia</Label>
+                <Textarea id="bio" value={formData.bio} onChange={handleInputChange} rows={5} />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button type="button" onClick={handleSaveChanges}>
+                Salvar Alterações
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </PageHeader>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -48,7 +148,9 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
               <h2 className="font-headline text-2xl text-foreground">{artist.name}</h2>
               <div className="mt-2 flex flex-wrap justify-center gap-2">
                 {artist.disciplines.map((d) => (
-                  <Badge key={d} variant="secondary">{d}</Badge>
+                  <Badge key={d} variant="secondary">
+                    {d}
+                  </Badge>
                 ))}
               </div>
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -102,7 +204,9 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
                           />
                         </div>
                         <div className="p-4">
-                          <h3 className="font-headline text-lg text-foreground">{artwork.title} ({artwork.year})</h3>
+                          <h3 className="font-headline text-lg text-foreground">
+                            {artwork.title} ({artwork.year})
+                          </h3>
                           <p className="text-sm text-muted-foreground">{artwork.description}</p>
                         </div>
                       </div>
