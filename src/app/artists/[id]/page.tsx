@@ -2,11 +2,12 @@ import { artists } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, Pencil } from 'lucide-react';
 import AiBioGenerator from '@/components/artists/ai-bio-generator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 export async function generateStaticParams() {
   return artists.map((artist) => ({
@@ -23,7 +24,12 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
 
   return (
     <div className="space-y-8">
-      <PageHeader title={artist.name} />
+      <PageHeader title={artist.name}>
+        <Button variant="outline">
+          <Pencil />
+          Editar Artista
+        </Button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-1">
@@ -60,7 +66,7 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="artworks" className="w-full">
+          <Tabs defaultValue="bio" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="bio">Biografia</TabsTrigger>
               <TabsTrigger value="artworks">Obras de Arte</TabsTrigger>
