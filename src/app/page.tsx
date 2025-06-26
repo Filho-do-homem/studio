@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
-import { artists } from '@/lib/data';
+import { artists as initialArtists } from '@/lib/data';
 import type { Artist } from '@/lib/types';
 import ArtistCard from '@/components/artists/artist-card';
 import { PageHeader } from '@/components/page-header';
@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle } from 'lucide-react';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 const emptyArtist: Omit<Artist, 'id' | 'artworks'> = {
   name: '',
@@ -31,7 +32,7 @@ const emptyArtist: Omit<Artist, 'id' | 'artworks'> = {
 };
 
 export default function Home() {
-  const [artistList, setArtistList] = useState<Artist[]>(artists);
+  const [artistList, setArtistList] = useLocalStorage<Artist[]>('artists', initialArtists);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newArtist, setNewArtist] = useState(emptyArtist);
   const [disciplinesInput, setDisciplinesInput] = useState('');

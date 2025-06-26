@@ -10,24 +10,20 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Minute } from '@/lib/types';
-import { v4 as uuidv4 } from 'uuid';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 export default function MinutesDisplay({ initialMinutes }: { initialMinutes: Minute[] }) {
-  const [minutes, setMinutes] = useState<Minute[]>(initialMinutes);
+  const [minutes, setMinutes] = useLocalStorage<Minute[]>('minutes', initialMinutes);
   const [newMinute, setNewMinute] = useState({ title: '', date: '', content: '' });
 
   const handleAddMinute = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMinute.title && newMinute.date && newMinute.content) {
-      const newId = uuidv4();
+      const newId = Math.random().toString(36).substring(7);
       setMinutes([{ id: newId, ...newMinute }, ...minutes]);
       setNewMinute({ title: '', date: '', content: '' });
     }
   };
-  
-  // Note: Since we don't have a backend, uuid is not installed. We'll use Math.random for now.
-  const tempId = () => Math.random().toString(36).substring(7);
-
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">

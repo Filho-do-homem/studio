@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle } from 'lucide-react';
 import type { Event } from '@/lib/types';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 const emptyEvent = {
   title: '',
@@ -45,7 +46,7 @@ const formatDateTimeForInput = (date: Date): string => {
 };
 
 export default function EventsPage() {
-  const [eventsList, setEventsList] = useState<Event[]>(initialEvents);
+  const [eventsList, setEventsList] = useLocalStorage<Event[]>('events', initialEvents);
 
   // States for adding a new event
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

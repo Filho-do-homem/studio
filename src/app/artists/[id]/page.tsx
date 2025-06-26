@@ -1,6 +1,6 @@
 'use client';
 
-import { artists } from '@/lib/data';
+import { artists as initialArtists } from '@/lib/data';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Mail, Phone, Pencil, PlusCircle } from 'lucide-react';
 import AiBioGenerator from '@/components/artists/ai-bio-generator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Artist, Artwork } from '@/lib/types';
 import { useParams } from 'next/navigation';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 const emptyArtwork: Omit<Artwork, 'id' | 'data-ai-hint'> = {
   title: '',
@@ -35,14 +36,19 @@ const emptyArtwork: Omit<Artwork, 'id' | 'data-ai-hint'> = {
 
 export default function ArtistProfilePage() {
   const params = useParams<{ id: string }>();
-  const initialArtist = artists.find((a) => a.id === params.id);
+  const [allArtists, setAllArtists] = useLocalStorage<Artist[]>('artists', initialArtists);
 
-  const [artist, setArtist] = useState<Artist | undefined>(initialArtist);
+  const artist = allArtists.find((a) => a.id === params.id);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<Artist | undefined>(initialArtist);
+  const [formData, setFormData] = useState<Artist | undefined>(artist);
 
   const [isAddArtworkDialogOpen, setIsAddArtworkDialogOpen] = useState(false);
   const [newArtwork, setNewArtwork] = useState(emptyArtwork);
+
+  useEffect(() => {
+    setFormData(artist);
+  }, [artist]);
 
   if (!artist || !formData) {
     return <div className="py-10 text-center">Artista não encontrado.</div>;
@@ -70,8 +76,9 @@ export default function ArtistProfilePage() {
   };
 
   const handleSaveChanges = () => {
-    console.log('Saving artist data:', formData);
-    setArtist(formData);
+    if (!formData) return;
+    const updatedArtists = allArtists.map((a) => (a.id === formData.id ? formData : a));
+    setAllArtists(updatedArtists);
     setIsDialogOpen(false);
   };
 
@@ -107,10 +114,14 @@ export default function ArtistProfilePage() {
       'data-ai-hint': 'artwork photo',
     };
 
-    const updatedArtworks = [...artist.artworks, artworkToAdd];
-    const updatedArtist = { ...artist, artworks: updatedArtworks };
+    const updatedArtist = {
+      ...artist,
+      artworks: [...artist.artworks, artworkToAdd],
+    };
 
-    setArtist(updatedArtist);
+    const updatedArtists = allArtists.map((a) => (a.id === artist.id ? updatedArtist : a));
+    setAllArtists(updatedArtists);
+
     setNewArtwork(emptyArtwork);
     setIsAddArtworkDialogOpen(false);
   };
