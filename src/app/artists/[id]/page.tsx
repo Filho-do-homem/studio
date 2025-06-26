@@ -41,6 +41,17 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
     setFormData((prev) => (prev ? { ...prev, [id]: value } : undefined));
   };
 
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => (prev ? { ...prev, profilePictureUrl: reader.result as string } : undefined));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleDisciplinesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setFormData((prev) => (prev ? { ...prev, disciplines: value.split(',').map((d) => d.trim()) } : undefined));
@@ -80,6 +91,18 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
                   Nome
                 </Label>
                 <Input id="name" value={formData.name} onChange={handleInputChange} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="profilePicture" className="text-right">
+                  Foto
+                </Label>
+                <Input
+                  id="profilePicture"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="col-span-3"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">
