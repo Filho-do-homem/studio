@@ -1,7 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { handleGenerateBio } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,7 @@ function SubmitButton() {
 }
 
 export default function AiBioGenerator() {
-  const [state, formAction] = useFormState(handleGenerateBio, {
+  const [state, formAction] = useActionState(handleGenerateBio, {
     bio: '',
     error: '',
   });
