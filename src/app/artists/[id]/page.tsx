@@ -24,8 +24,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Artist } from '@/lib/types';
+import { useParams } from 'next/navigation';
 
-export default function ArtistProfilePage({ params }: { params: { id: string } }) {
+export default function ArtistProfilePage() {
+  const params = useParams<{ id: string }>();
   const initialArtist = artists.find((a) => a.id === params.id);
 
   const [artist, setArtist] = useState<Artist | undefined>(initialArtist);
