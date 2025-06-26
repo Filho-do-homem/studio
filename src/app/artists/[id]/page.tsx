@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Pencil } from 'lucide-react';
+import { Mail, Phone, Pencil, PlusCircle } from 'lucide-react';
 import AiBioGenerator from '@/components/artists/ai-bio-generator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { Artist } from '@/lib/types';
+import type { Artist, Artwork } from '@/lib/types';
 import { useParams } from 'next/navigation';
+
+const emptyArtwork: Omit<Artwork, 'id' | 'data-ai-hint'> = {
+  title: '',
+  year: new Date().getFullYear(),
+  imageUrl: '',
+  description: '',
+};
 
 export default function ArtistProfilePage() {
   const params = useParams<{ id: string }>();
@@ -33,6 +40,9 @@ export default function ArtistProfilePage() {
   const [artist, setArtist] = useState<Artist | undefined>(initialArtist);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<Artist | undefined>(initialArtist);
+
+  const [isAddArtworkDialogOpen, setIsAddArtworkDialogOpen] = useState(false);
+  const [newArtwork, setNewArtwork] = useState(emptyArtwork);
 
   if (!artist || !formData) {
     return <div className="py-10 text-center">Artista não encontrado.</div>;
@@ -68,6 +78,41 @@ export default function ArtistProfilePage() {
   const openEditDialog = () => {
     setFormData(artist);
     setIsDialogOpen(true);
+  };
+
+  const handleNewArtworkInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setNewArtwork((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleNewArtworkImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewArtwork((prev) => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddArtwork = () => {
+    if (!artist || !newArtwork.title || !newArtwork.imageUrl) {
+      alert('Título e Imagem são obrigatórios.');
+      return;
+    }
+    const artworkToAdd: Artwork = {
+      ...newArtwork,
+      id: Math.random().toString(36).substring(7),
+      'data-ai-hint': 'artwork photo',
+    };
+
+    const updatedArtworks = [...artist.artworks, artworkToAdd];
+    const updatedArtist = { ...artist, artworks: updatedArtworks };
+
+    setArtist(updatedArtist);
+    setNewArtwork(emptyArtwork);
+    setIsAddArtworkDialogOpen(false);
   };
 
   return (
@@ -205,7 +250,83 @@ export default function ArtistProfilePage() {
             <TabsContent value="artworks" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-headline">Obras de Arte</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="font-headline">Obras de Arte</CardTitle>
+                    <Dialog open={isAddArtworkDialogOpen} onOpenChange={setIsAddArtworkDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <PlusCircle />
+                          Adicionar Obra
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Adicionar Nova Obra</DialogTitle>
+                          <DialogDescription>
+                            Preencha os dados da nova obra de arte.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="title" className="text-right">
+                              Título
+                            </Label>
+                            <Input
+                              id="title"
+                              value={newArtwork.title}
+                              onChange={handleNewArtworkInputChange}
+                              className="col-span-3"
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="year" className="text-right">
+                              Ano
+                            </Label>
+                            <Input
+                              id="year"
+                              type="number"
+                              value={newArtwork.year}
+                              onChange={handleNewArtworkInputChange}
+                              className="col-span-3"
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="imageUrl" className="text-right">
+                              Imagem
+                            </Label>
+                            <Input
+                              id="imageUrl"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleNewArtworkImageChange}
+                              className="col-span-3"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 gap-2">
+                            <Label htmlFor="description">Descrição</Label>
+                            <Textarea
+                              id="description"
+                              value={newArtwork.description}
+                              onChange={handleNewArtworkInputChange}
+                              rows={3}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button type="button" variant="secondary">
+                              Cancelar
+                            </Button>
+                          </DialogClose>
+                          <Button type="button" onClick={handleAddArtwork}>
+                            Salvar Obra
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
